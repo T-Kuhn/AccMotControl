@@ -21,7 +21,7 @@ class AccMotControl
         MPU6050 mpu;
         PID pid;
         void begin();
-        void update();
+        void updatePID();
     private:
         int _motorDriverIN1pin;
         int _motorDriverIN2pin;
