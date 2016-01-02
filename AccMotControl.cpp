@@ -30,26 +30,27 @@ void AccMotControl::begin()
     pinMode(_motorDriverIN1pin, OUTPUT);
     pinMode(_motorDriverIN2pin, OUTPUT);
     mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
-    pid.begin(20.0f, 0.1f, 10.0f);
+    mpu.setDLPFMode(MPU6050_DLPF_6);   
+    pid.begin(50.0f, 0.00f, 100.0f);
     pid.setSetPoint(4.5f);
 }
 
 // - - - - - - - - - - - - - - - - - - -
 // - - - AccMotControl UPDATE  - - - - -
 // - - - - - - - - - - - - - - - - - - -
-void AccMotControl::update()
+void AccMotControl::updatePID()
 {
     _cntr++;
-    if(_cntr % 100 == 0){
+    if(_cntr % 1000 == 0){
         pid.setSetPoint(0.0f);
     }
-    if(_cntr % 199 == 0){
-        pid.setSetPoint(4.5f);
+    if(_cntr % 1999 == 0){
+        pid.setSetPoint(7.0f);
         _cntr = 1;
     }
     Vector tmp;
     tmp = mpu.readNormalizeAccel();
-    Serial.print(" | AcY = "); Serial.println(tmp.YAxis);
+    //Serial.println(tmp.YAxis);
     analogWrite(_motorDriverPWMpin, _setRotDir(pid.update(tmp.YAxis)));
 }
 
