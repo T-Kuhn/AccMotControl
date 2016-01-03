@@ -31,7 +31,7 @@ void AccMotControl::begin()
     pinMode(_motorDriverIN2pin, OUTPUT);
     mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
     mpu.setDLPFMode(MPU6050_DLPF_5);   
-    pid.begin(80.0f, 0.00f, 120.0f);
+    pid.begin(60.0f, 0.00f, 100.0f);
     pid.setSetPoint(4.5f);
 }
 
