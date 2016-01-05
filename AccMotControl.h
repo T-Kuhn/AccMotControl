@@ -27,6 +27,7 @@ class AccMotControl
         int _motorDriverIN2pin;
         int _motorDriverPWMpin; 
         int _setRotDir(int val);
+        float _getRotAngle();
         int _cntr;
 };
 

@@ -31,8 +31,8 @@ void AccMotControl::begin()
     pinMode(_motorDriverIN2pin, OUTPUT);
     mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
     mpu.setDLPFMode(MPU6050_DLPF_5);   
-    pid.begin(60.0f, 0.00f, 100.0f);
-    pid.setSetPoint(4.5f);
+    pid.begin(250.0f, 0.00f, 150.0f);
+    pid.setSetPoint(4.71f);
 }
 
 // - - - - - - - - - - - - - - - - - - -
@@ -41,20 +41,18 @@ void AccMotControl::begin()
 void AccMotControl::updatePID()
 {
     _cntr++;
-    if(_cntr % 2000 == 0){
-        pid.setSetPoint(0.0f);
+    if(_cntr % 1000 == 0){
+        pid.setSetPoint(0.78f);
     }
-    if(_cntr % 3999 == 0){
-        pid.setSetPoint(7.0f);
+    if(_cntr % 2000 == 0){
+        pid.setSetPoint(2.36f);
+    }
+    if(_cntr % 2999 == 0 || _cntr >= 3000){
+        pid.setSetPoint(5.50f); 
         _cntr = 1;
     }
-    Vector tmp;
-    Vector tmpGyro;
-    tmp = mpu.readNormalizeAccel();
-    tmpGyro = mpu.readNormalizeGyro();
-    Serial.println(tmp.YAxis);
-    //Serial.println(tmpGyro.YAxis);
-    analogWrite(_motorDriverPWMpin, _setRotDir(pid.update(tmp.YAxis)));
+    Serial.println(_getRotAngle());
+    analogWrite(_motorDriverPWMpin, _setRotDir(pid.update(_getRotAngle())));
 }
 
 // - - - - - - - - - - - - - - - - - - -
@@ -72,6 +70,31 @@ int AccMotControl::_setRotDir(int val)
     return abs(val); 
 }
 
+// - - - - - - - - - - - - - - - - - - -
+//  AccMotControl GET ROTATIONAL ANGLE -
+// - - - - - - - - - - - - - - - - - - -
+float AccMotControl::_getRotAngle()
+{
+    Vector _tmp;
+    float _XAxis;
+    float _YAxis;
+    float _aTan;
+    _tmp = mpu.readRawAccel();
+    _XAxis = _tmp.XAxis;
+    _YAxis = _tmp.YAxis;
+    if(_YAxis == 0.0f){
+        _YAxis = 0.000000001f;
+    }
+    _aTan = (float)atan(_XAxis / _YAxis);
+    if(_YAxis >= 0.0f){
+        return _aTan + PI; 
+    }else if(_XAxis < 0.0f){
+        return _aTan;
+    }else if(_XAxis >= 0.0f){
+        return _aTan + 2*PI;
+    }
+    return 0.0f;
+}
 
 
 
