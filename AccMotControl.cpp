@@ -32,7 +32,7 @@ void AccMotControl::begin()
     mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
     mpu.setDLPFMode(MPU6050_DLPF_4);   
     _pathFollowing = false;
-    pid.begin(200.0f, 0.0f, 0.0f);
+    pid.begin(330.0f, 0.4f, 400.0f);
     pid.setSetPoint(4.71f);
 }
 
@@ -56,7 +56,7 @@ void AccMotControl::_updatePID()
     //_setPointSetter();
     _moveFunctionCaller();
     //Serial.println(_getRotAngle());
-    analogWrite(_motorDriverPWMpin, _setRotDir(pid.update(_getRotAngle())));
+    analogWrite(_motorDriverPWMpin, _setRotDir(pid.update(_getRotAngle(), _pathFollowing)));
 }
 
 // - - - - - - - - - - - - - - - - - - -
