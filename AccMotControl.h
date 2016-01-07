@@ -22,12 +22,14 @@ class AccMotControl
         PID pid;
         void begin();
         void update();
+        void setMode(int nmbr);
         void move(float goalPos, unsigned int moveTime, unsigned int moveSlopeTime);
     private:
         void _updatePID();
         int _setRotDir(int val);
         float _getRotAngle();
-        void _calculatePathVars();
+        void _calculatePathVars1();
+        void _calculatePathVars2();
         void _followPath();
         void _followStartSlope();
         void _followStraightLine();
@@ -38,12 +40,13 @@ class AccMotControl
         int _motorDriverIN2pin;
         int _motorDriverPWMpin; 
         int _cntr;
+        int _mode;
         bool _pathFollowing;
         float _goalPos;
         float _startPos;
         unsigned long _startTime;
         unsigned long _currentTime;
-        unsigned int _passedTime;
+        unsigned long _passedTime;
         unsigned int _moveTime;
         unsigned int _moveSlopeTime;
         unsigned int _moveStraightTime;

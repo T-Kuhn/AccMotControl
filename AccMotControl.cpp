@@ -34,8 +34,8 @@ void AccMotControl::begin()
     _pathFollowing = false;
     pid.begin(330.0f, 0.4f, 400.0f);
     pid.setSetPoint(4.71f);
+    setMode(1);
 }
-
 
 // - - - - - - - - - - - - - - - - - - -
 // - - - - AccMotControl UPDATE  - - - -
@@ -111,19 +111,41 @@ void AccMotControl::move(float goalPos, unsigned int moveTime, unsigned int move
     _moveSlopeTime = moveSlopeTime;
     _startPos = _getRotAngle();
     _startTime = millis();
-    _calculatePathVars();
+    if(_mode == 1){
+        _calculatePathVars1();
+    }else{
+        _calculatePathVars2();
+    }
 }
 
-// - - - - - - - - - - - - - - - - - - -
-// - AccMotControl CALCULATE PATHVARS  -
-// - - - - - - - - - - - - - - - - - - -
-void AccMotControl::_calculatePathVars()
+// - - - - - - - - - - - - - - - - - - - - - 
+// - AccMotControl CALCULATE PATHVARS  1 - -
+// - - - - - - - - - - - - - - - - - - - - -
+void AccMotControl::_calculatePathVars1()
 {
     _distance = _goalPos - _startPos; // can be minus
     if(2 * _moveSlopeTime < _moveTime){
         _moveStraightTime = _moveTime - 2 * _moveSlopeTime;  
     }else{
-        _moveStraightTime = 0.0f;
+        _moveStraightTime = 0;
+    }
+    _maxSpeed = _distance / (_moveSlopeTime + _moveStraightTime);
+    _slope = _maxSpeed / _moveSlopeTime;
+    
+    _startSlopeEndPos = _maxSpeed / 2 * _moveSlopeTime;
+    _straightMoveEndPos = _startSlopeEndPos + _maxSpeed * _moveStraightTime;
+}
+
+// - - - - - - - - - - - - - - - - - - - - -
+// - AccMotControl CALCULATE PATHVARS  2 - -
+// - - - - - - - - - - - - - - - - - - - - -
+void AccMotControl::_calculatePathVars2()
+{
+    _distance = _goalPos - _startPos; // can be minus
+    if(2 * _moveSlopeTime < _moveTime){
+        _moveStraightTime = _moveTime - 2 * _moveSlopeTime;  
+    }else{
+        _moveStraightTime = 0;
     }
     _maxSpeed = _distance / (_moveSlopeTime + _moveStraightTime);
     _slope = _maxSpeed / _moveSlopeTime;
@@ -159,7 +181,12 @@ void AccMotControl::_followPath()
 // - - - - - - - - - - - - - - - - - - -
 void AccMotControl::_followStartSlope()
 {
-    pid.setSetPoint(_startPos + _passedTime * _passedTime * _slope / 2);
+    if(_mode == 1){
+        pid.setSetPoint(_startPos + _passedTime * _passedTime * _slope / 2);
+    }else{
+        pid.setSetPoint(_startPos + ( sin(-PI/2 + (float)_passedTime / _moveSlopeTime * PI) 
+                + 1 ) / 4 * _slope * _passedTime * _passedTime);
+    }
 }
 
 // - - - - - - - - - - - - - - - - - - -
@@ -176,9 +203,26 @@ void AccMotControl::_followStraightLine()
 void AccMotControl::_followEndSlope()
 {
     unsigned int passedTimeSinceStartEndSlope = _passedTime - _moveSlopeTime - _moveStraightTime;
-    pid.setSetPoint(_startPos + _straightMoveEndPos +
-            (_maxSpeed - _slope / 2 * passedTimeSinceStartEndSlope) * 
-            passedTimeSinceStartEndSlope); 
+    if(_mode == 1){
+        pid.setSetPoint(_startPos + _straightMoveEndPos
+                + (_maxSpeed - _slope / 2 * passedTimeSinceStartEndSlope) 
+                * passedTimeSinceStartEndSlope); 
+    }else{
+        pid.setSetPoint(_startPos + _straightMoveEndPos
+                + (_maxSpeed - (sin( -PI/2 + (float)passedTimeSinceStartEndSlope / _moveSlopeTime * PI) 
+                + 1 ) / 2 * _slope / 2 * passedTimeSinceStartEndSlope)
+                * passedTimeSinceStartEndSlope);
+    }
+}
+
+// - - - - - - - - - - - - - - - - - - -
+// - AccMotControl FOLLOW END SLOPE  - -
+// - - - - - - - - - - - - - - - - - - -
+void AccMotControl::setMode(int nmbr)
+{
+    // nmbr ->  1:  linear speedgain
+    //          2:  S-curveed speedgain
+    _mode = nmbr;
 }
 
 // - - - - - - - - - - - - - - - - - - -
@@ -206,13 +250,13 @@ void AccMotControl::_moveFunctionCaller()
 {
     _cntr++;
     if(_cntr % 2000 == 0){
-        move(0.78f, 1000, 200);
+        move(5.50f, 200, 50);
     }
     if(_cntr % 4000 == 0){
-        move(2.36f, 500, 200);
+        move(4.00f, 200, 50);
     }
     if(_cntr % 5999 == 0 || _cntr >= 6000){
-        move(5.50f, 650, 200); 
+        move(5.00f, 100, 40); 
         _cntr = 1;
     }
 }
