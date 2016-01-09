@@ -14,22 +14,26 @@
 // - - - - - - - - - - - - - - - - - - -
 // - - - AccMotControl CONSTRUCTOR - - -
 // - - - - - - - - - - - - - - - - - - -
-AccMotControl::AccMotControl(int in1Pin, int in2Pin, int pwmPin)
+AccMotControl::AccMotControl(int in1Pin, int in2Pin, int pwmPin, int mpuAdd)
 {
     _motorDriverPWMpin = pwmPin;
     _motorDriverIN1pin = in1Pin;
     _motorDriverIN2pin = in2Pin;
+    _mpuAdd = mpuAdd;
 }
 
 // - - - - - - - - - - - - - - - - - - -
 // - - - AccMotControl BEGIN - - - - - -
 // - - - - - - - - - - - - - - - - - - -
-void AccMotControl::begin()
+void AccMotControl::begin(float pos1, float pos2, float pos3)
 {
+    _pos1 = pos1;
+    _pos2 = pos2;
+    _pos3 = pos3;
     pinMode(_motorDriverPWMpin, OUTPUT);
     pinMode(_motorDriverIN1pin, OUTPUT);
     pinMode(_motorDriverIN2pin, OUTPUT);
-    mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
+    mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G, _mpuAdd);
     mpu.setDLPFMode(MPU6050_DLPF_4);   
     _pathFollowing = false;
     pid.begin(330.0f, 0.4f, 400.0f);
@@ -249,14 +253,14 @@ void AccMotControl::_setPointSetter()
 void AccMotControl::_moveFunctionCaller()
 {
     _cntr++;
-    if(_cntr % 2000 == 0){
-        move(5.50f, 200, 50);
+    if(_cntr % 500 == 0){
+        move(_pos1, 500, 200);
     }
-    if(_cntr % 4000 == 0){
-        move(4.00f, 200, 50);
+    if(_cntr % 1000 == 0){
+        move(_pos2, 500, 200);
     }
-    if(_cntr % 5999 == 0 || _cntr >= 6000){
-        move(5.00f, 100, 40); 
+    if(_cntr % 1499 == 0 || _cntr >= 1500){
+        move(_pos3, 500, 200); 
         _cntr = 1;
     }
 }

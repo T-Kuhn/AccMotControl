@@ -17,10 +17,10 @@
 class AccMotControl
 {
     public:
-        AccMotControl(int in1Pin, int in2Pin, int pwmPin);
+        AccMotControl(int in1Pin, int in2Pin, int pwmPin, int mpuAdd);
         MPU6050 mpu;
         PID pid;
-        void begin();
+        void begin(float pos1, float pos2, float pos3);
         void update();
         void setMode(int nmbr);
         void move(float goalPos, unsigned int moveTime, unsigned int moveSlopeTime);
@@ -36,6 +36,10 @@ class AccMotControl
         void _followEndSlope();
         void _setPointSetter();
         void _moveFunctionCaller();
+        float _pos1;
+        float _pos2;
+        float _pos3;
+        int _mpuAdd;
         int _motorDriverIN1pin;
         int _motorDriverIN2pin;
         int _motorDriverPWMpin; 
